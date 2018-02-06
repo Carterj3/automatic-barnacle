@@ -1,0 +1,2 @@
+Proof of concept to create something capable of using an input stream (the mic) and adjusting the output to be between provided noise limits.
+The idea being you have a source (Video / Music / phone call) and you want it to always be between [45, 60] dB.

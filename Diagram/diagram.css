@@ -1,0 +1,91 @@
+.js-diagram-item {
+    /* Do not use this for css */
+}
+
+.js-diagram-slot {
+    /* Do not use this for css */
+}
+
+.js-diagram-connector {
+    /* Do not use this for css */
+}
+
+.output-connector {
+    border: 2px solid orange;
+    border-radius: 8px;
+
+    display: inline-block;
+    margin: 2px;
+
+    min-width: 130px;
+    min-height: 80px;
+}
+
+.diagram-item {
+    border: 2px solid orange;
+    border-radius: 8px;
+
+    display:inline-block;
+    margin: 5px;
+
+    text-align: center;
+
+    min-width: 90px;
+    min-height: 30px;
+}
+
+.diagram-item > table {
+    margin: 3px;
+}
+
+
+
+ .diagram-item-table-top > td {
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+    border-top: 2px solid black;
+    border-bottom: 1px solid gray;
+
+    padding: 2px;
+}
+
+ .diagram-item-table-bottom > td{
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+    border-bottom: 2px solid black;
+
+    padding: 2px;
+}
+
+
+.diagram-spacer {
+    border: 0px solid #FFFFFF00;
+
+    min-width: 30px;
+    min-height: 10px;
+}
+
+.diagram-spacer > i {
+    text-align: center;
+    font-size: 25px;
+    margin: 5px;
+}
+
+.diagram-slot {
+    border: 3px dashed blue;
+    border-radius: 8px;
+
+    min-width: 130px;
+    min-height: 80px;
+}
+
+.unconnected-slot {
+    border: 3px solid black;
+
+    min-width: 100px;
+    min-height: 100px;
+}
+
+.div-span {
+    display: inline-block;
+}
