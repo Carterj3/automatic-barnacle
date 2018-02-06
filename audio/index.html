@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Audio Processor</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.js" integrity="sha256-t7kx8nPDixJ3ucbB9OBcTsCYhaSHvdrzJ54tfkmjjhI="
+        crossorigin="anonymous"></script>
+
+    <script type="text/javascript" src="audio.js"></script>
+
+</head>
+
+<body>
+    <div id="placeholder" style="width:600px;height:300px"></div>
+</body>
+
+<script>
+    var Pollution = { audio: {}, chartData: [] };
+
+    function initAudio() {
+        // https://github.com/daaain/JSSoundRecorder
+
+        function startUserMedia(stream) {
+            // create MediaStreamSource and GainNode
+            Pollution.microphone = Pollution.audioContext.createMediaStreamSource(stream);
+
+            Pollution.scriptNode = Pollution.audioContext.createScriptProcessor(4096, 1, 1);
+            Pollution.scriptNode.onaudioprocess = audioProcessingEvent => {
+
+                var inputBuffer = audioProcessingEvent.inputBuffer;
+                var outputBuffer = audioProcessingEvent.outputBuffer;
+
+                // Loop through the output channels (in this case there is only one)
+                for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
+                    var inputData = inputBuffer.getChannelData(channel);
+                    var outputData = outputBuffer.getChannelData(channel);
+
+                    var chartData = [];
+                    var bufferSum = 0;
+
+                    // Loop through the 4096 samples
+                    for (var sample = 0; sample < inputBuffer.length; sample++) {
+                        // make output equal to the same as the input
+                        outputData[sample] = inputData[sample];
+
+                        // Seems dangerous, inputData[ ] is often negative.
+                        // TODO: Fix buffer, investigate what filters do, probably better way to do this
+                        bufferSum = bufferSum + inputData[sample];
+
+                        if (typeof Pollution.audio.maxSample == 'undefined') {
+                            Pollution.audio.maxSample = outputData[sample];
+                        } else {
+                            Pollution.audio.maxSample = Math.max(outputData[sample], Pollution.audio.maxSample);
+                        }
+
+                        let x = audioProcessingEvent.playbackTime + sample * (1.0 / inputBuffer.sampleRate);
+                        let y = outputData[sample];
+                        Pollution.chartData.push([x, y]);
+                    }
+
+                    if (typeof Pollution.audio.maxBufferSum == 'undefined') {
+                            Pollution.audio.maxBufferSum = bufferSum;
+                        } else {
+                            Pollution.audio.maxBufferSum = Math.max(bufferSum, Pollution.audio.maxBufferSum);
+                        }
+
+                    if (Pollution.chartData.length > 4096 * 8) {
+                        Pollution.chartData.splice(0, Pollution.chartData.length - 4096 * 8);
+                    }
+
+                    Pollution.plot.destroy();
+                    Pollution.plot = $.plot($("#placeholder")
+                        , [{
+                            data: Pollution.chartData
+                            , color: "rgb(30, 180, 20)"
+                            , threshold: {
+                                below: Pollution.audio.max / 2.0,
+                                color: "rgb(200, 20, 30)"
+                            },
+                        }]
+                        , {
+                            yaxis: {
+                                ticks: 7,
+                                min: -3,
+                                max: 3
+                            }
+                        }
+                    );
+                }
+            };
+
+            Pollution.microphone.connect(Pollution.scriptNode);
+            Pollution.scriptNode.connect(Pollution.audioContext.destination);
+
+            console.log('setup');
+
+        }
+
+        // shim and create AudioContext
+        window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
+        Pollution.audioContext = new AudioContext();
+
+        // shim and start GetUserMedia audio stream
+        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+        navigator.getUserMedia({ audio: true }, startUserMedia, function (e) {
+            console.log('No live audio input: ' + e);
+        });
+    }
+
+    $(document).ready(function () {
+        Pollution.plot = $.plot($("#placeholder"), [Pollution.chartData]);
+        initAudio();
+    });
+
+</script>
+
+</html>
